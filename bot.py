@@ -1,17 +1,34 @@
+import os
+
 import discord
+from dotenv import load_dotenv
 
-client = discord.Client()
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
 
-@client.event
+bot = discord.Client()
+
+keyword = '!roulette'
+
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    for guild in bot.guilds:
+        if guild.name == GUILD:
+            break
 
-@client.event
+    print(
+        f'{bot.user} has connected to Discord!\n'
+    )
+
+    members = '\n - '.join([member.name for member in guild.members])
+    print(f'Guild Members:\n - {members}')
+
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
-        return
+    message_text = message.content.strip().lower()
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
+    if keyword in message_text:
+        await message.channel.send('hi')
 
-client.run('your token here')
+bot.run(TOKEN)
