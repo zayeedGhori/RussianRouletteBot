@@ -72,6 +72,13 @@ async def on_ready():
 # Runs when a message is sent, prints 'hello [member names]'
 @bot.event
 async def on_message(message):
+    message_breakdown = message.content.strip().lower().split()
+    main, extra = message_breakdown[0], message_breakdown[1:len(message_breakdown)]
+    # prints message if keyword is in the start of message
+    if main == keyword:
+        extra = (" / ").join(extra)
+        members = (', ').join([member.name for member in bot.guilds[0].members])
+        await message.channel.send("Hello! You have activated the Russian Roulette Bot. You have added the following sub-commands: [{}]. Current members are: '{}'".format(extra, members))
     
 
 # runs the bot
