@@ -17,10 +17,6 @@ bot = discord.Client(intents=intents)
 # Initializes keyword that the bot will respond to
 keyword = '!roulette'
 
-sub_commands = {
-
-}
-
 # Checks if the GUILD in .env is listed is in the guilds of the bot and if it has connected to discord
 @bot.event
 async def on_ready():
@@ -36,12 +32,14 @@ async def on_ready():
 # Runs when a message is sent, prints 'hello [member names]'
 @bot.event
 async def on_message(message):
-    message_text = message.content.strip().lower()
+    message_breakdown = message.content.strip().lower().split()
+    main, extra = message_breakdown[0], message_breakdown[1:len(message_breakdown)]
     # prints message if keyword is in the start of message
-    print("message sent")
-    if message_text.find(keyword) == 0:
-        members = ', '.join([member.name for member in bot.guilds[0].members])
-        await message.channel.send("Hello! You have activated the Russian Roulette Bot.'{}'".format(members))
+    if main == keyword:
+        extra = (" / ").join(extra)
+        members = (', ').join([member.name for member in bot.guilds[0].members])
+        await message.channel.send("Hello! You have activated the Russian Roulette Bot. You have added the following sub-commands: [{}]. Current members are: '{}'".format(extra, members))
+    
 
 # runs the bot
 bot.run(TOKEN)
