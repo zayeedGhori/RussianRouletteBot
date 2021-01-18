@@ -74,5 +74,13 @@ async def on_ready():
 async def play(ctx, member: discord.Member, reason=None):
     await ctx.send(f"{member.mention} is playing!")
 
+@bot.command()
+async def rickroll(ctx):
+    await ctx.send("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLahKLy8pQdCM0SiXNn3EfGIXX19QGzUG3")
+
+@bot.command()
+async def helpme(ctx):
+    await ctx.send("You asked for help?")
+
 # runs the bot
 bot.run(TOKEN)
