@@ -14,7 +14,7 @@ intents = discord.Intents.default()
 intents.members = True
 
 # Creates bot
-bot = commands.Bot("!", help_command=)
+bot = commands.Bot("!")
 
 # url = "https://discord.com/api/v8/applications/787821652364361748/commands"
 
@@ -71,10 +71,8 @@ async def on_ready():
     )
 
 @bot.command()
-async def play(ctx, players: ):
-    await ctx.send("You are playing!")
-
-    
+async def play(ctx, member: discord.Member, reason=None):
+    await ctx.send(f"{member.mention} is playing!")
 
 # runs the bot
 bot.run(TOKEN)
