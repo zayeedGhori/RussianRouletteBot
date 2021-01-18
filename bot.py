@@ -75,8 +75,8 @@ async def play(ctx):
     await ctx.send("You are playing!")
 
 @bot.command()
-async def rickroll(ctx):
-    await ctx.send("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLahKLy8pQdCM0SiXNn3EfGIXX19QGzUG3")
+async def helpme(ctx):
+    await ctx.send("You asked for help?")
 
 # runs the bot
 bot.run(TOKEN)
