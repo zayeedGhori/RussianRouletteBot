@@ -15,7 +15,7 @@ intents.members = True
 # Creates bot
 bot = discord.Client(intents=intents)
 
-url = "https://discord.com/api/v8/applications/<my_application_id>/commands"
+url = "https://discord.com/api/v8/applications/787821652364361748/commands"
 
 json = {
     "name": "blep",
@@ -52,7 +52,7 @@ json = {
 
 # For authorization, you can use either your bot token 
 headers = {
-    "Authorization": "Bot 123456"
+    "Authorization": TOKEN
 }
 
 r = requests.post(url, headers=headers, json=json)
@@ -69,16 +69,16 @@ async def on_ready():
         f'{bot.user} has connected to Discord!\n'
     )
 
-# Runs when a message is sent, prints 'hello [member names]'
-@bot.event
-async def on_message(message):
-    message_breakdown = message.content.strip().lower().split()
-    main, extra = message_breakdown[0], message_breakdown[1:len(message_breakdown)]
-    # prints message if keyword is in the start of message
-    if main == keyword:
-        extra = (" / ").join(extra)
-        members = (', ').join([member.name for member in bot.guilds[0].members])
-        await message.channel.send("Hello! You have activated the Russian Roulette Bot. You have added the following sub-commands: [{}]. Current members are: '{}'".format(extra, members))
+# # Runs when a message is sent, prints 'hello [member names]'
+# @bot.event
+# async def on_message(message):
+#     message_breakdown = message.content.strip().lower().split()
+#     main, extra = message_breakdown[0], message_breakdown[1:len(message_breakdown)]
+#     # prints message if keyword is in the start of message
+#     if main == keyword:
+#         extra = (" / ").join(extra)
+#         members = (', ').join([member.name for member in bot.guilds[0].members])
+#         await message.channel.send("Hello! You have activated the Russian Roulette Bot. You have added the following sub-commands: [{}]. Current members are: '{}'".format(extra, members))
     
 
 # runs the bot
