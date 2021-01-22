@@ -14,49 +14,7 @@ intents = discord.Intents.default()
 intents.members = True
 
 # Creates bot
-bot = commands.Bot("!")
-
-# url = "https://discord.com/api/v8/applications/787821652364361748/commands"
-
-# json = {
-#     "name": "blep",
-#     "description": "Send a random adorable animal photo",
-#     "options": [
-#         {
-#             "name": "animal",
-#             "description": "The type of animal",
-#             "type": 3,
-#             "required": True,
-#             "choices": [
-#                 {
-#                     "name": "Dog",
-#                     "value": "animal_dog"
-#                 },
-#                 {
-#                     "name": "Cat",
-#                     "value": "animal_cat"
-#                 },
-#                 {
-#                     "name": "Penguin",
-#                     "value": "animal_penguin"
-#                 }
-#             ]
-#         },
-#         {
-#             "name": "only_smol",
-#             "description": "Whether to show only baby animals",
-#             "type": 5,
-#             "required": False
-#         }
-#     ]
-# }
-
-# # For authorization, you can use either your bot token 
-# headers = {
-#     "Authorization": TOKEN
-# }
-
-# r = requests.post(url, headers=headers, json=json)
+bot = commands.Bot(command_prefix=".")
 
 # Checks if the GUILD in .env is listed is in the guilds of the bot and if it has connected to discord
 @bot.event
@@ -70,9 +28,27 @@ async def on_ready():
         f'{bot.user} has connected to Discord!\n'
     )
 
+# For debugging: Loads specified Cog into bot without having
+# reset the bot
 @bot.command()
-async def play(ctx, member: discord.Member, reason=None):
-    await ctx.send(f"{member.mention} is playing!")
+async def load(ctx, ext):
+    bot.load_extension(f'cogs.{ext}')
+    await ctx.send(f'{ext} has been loaded')
+
+# For debugging: Unloads specified Cog from bot wihtout 
+# having to restart
+@bot.command()
+async def unload(ctx, ext):
+    bot.unload_extension(f'cogs.{ext}')
+    await ctx.send(f'{ext} has been unloaded')
+
+# For debugging: Unloads and then reloads specified Cog 
+# into bot (useful when editing a Cog)
+@bot.command()
+async def reload(ctx, ext):
+    bot.unload_extension(f'cogs.{ext}')
+    bot.load_extension(f'cogs.{ext}')
+    await ctx.send(f'{ext} has been reloaded')
 
 @bot.command()
 async def rickroll(ctx):
@@ -81,6 +57,11 @@ async def rickroll(ctx):
 @bot.command()
 async def helpme(ctx):
     await ctx.send("You asked for help?")
+
+# loads all python cogs in /cogs folder
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'cogs.{filename[:-3]}')
 
 # runs the bot
 bot.run(TOKEN)
