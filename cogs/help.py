@@ -7,14 +7,22 @@ class Help(commands.Cog):
     
     # DM help
     @commands.Cog.listener()
-    async def on_message(self, ctx, message):
-        if not message.guild:
-            await ctx.send("This is a DM for help!")
+    async def on_message(self, message):
+        if not message.guild and message.author is not self.bot.user:
+            await message.channel.send("This is a DM for help!")
 
     # Regular help
     @commands.command()
     async def help(self, ctx):
-        await ctx.send("This is the help command!")
+        em = discord.Embed(
+            title = "Help",
+            description = "This is general help command.",
+            colour = discord.Colour.blue()
+        )
+        
+        em.set_footer(text="DM .help to recieve full help.")
+
+        await self.bot.say(embed=em)
 
 # Runs on setup
 def setup(bot):
