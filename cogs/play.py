@@ -1,13 +1,32 @@
 import discord, random
 from discord.ext import commands
 
+# Constants, can be modified if needed
+NUMBER_OF_ROUNDS = 6
+REQUIRED_NUM_PLAYERS = 2
+FUNNY_MESSAGES = {
+    "Survived": [
+        "Lucky you. 🍀",
+        "How did you do that, seriously? 🤯",
+        "What a legend. ✊",
+        "In it to win it I see. 👀"
+    ],
+
+    "Died": [
+        "That's tough. 😔",
+        "RIP.⚰️",
+        "Really bro? 😑"
+    ]
+}
+
+
 class Play(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
     # The group of russian roulette commands, default is played when there are no subcommands 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, aliases=["roulette"])
     async def play(self, ctx):
 
         ''' Default Command '''
@@ -16,34 +35,38 @@ class Play(commands.Cog):
         members = [member for member in ctx.message.mentions]
 
         # Create revolver with bullet (the location being the index of the True value)
-        cylinder = [False for i in range(6)]
-        cylinder[random.randint(0, 5)] = True
+        if len(members) < REQUIRED_NUM_PLAYERS:
+            await ctx.send(f'You do not have enough players! {REQUIRED_NUM_PLAYERS-len(members)} more players needed.') 
+            return
 
+        cylinder = [True for _ in range(NUMBER_OF_ROUNDS)]
+        cylinder[random.randint(0, NUMBER_OF_ROUNDS-1)] = False
         # Let members know what mode they are using
         await ctx.send(f'{" ".join(member.mention for member in members)} are playing regular mode!')
 
-
-
         ### Short game of automated imperfect russian roulette ###
-        round = 0
+        Round = 0
 
         # while more than one member is standing, play the game
         while (len(members) > 1):
             # Increment and display round
-            round += 1 
-            await ctx.send(f'Round {round}:')
+            Round += 1 
+            await ctx.send(f'Round {Round}:')
 
             # for every member playing, make them shoot
             for member in members:
-                await ctx.send(f'{member.mention} shot.')
+                await ctx.send(f'{member.mention} shot, and ...')
                 
-                # If False, then no bullet, so member is safe
-                if (not cylinder[random.randint(0, 5)]):
-                    await ctx.send(f'{member.mention} is safe.')
+                # If safe, then no bullet+
+                safe = cylinder.pop(random.randint(0, len(cylinder)-1))
+                if safe:   
+                    safe_message = FUNNY_MESSAGES["Survived"][random.randint(0, len(FUNNY_MESSAGES["Survived"])-1)]
+                    await ctx.send(f'{member.mention} is safe. {safe_message}')
                 
-                # if True, member is dead
+                # if not safe, member is dead
                 else:
-                    await ctx.send(f'{member.mention} is dead.')
+                    died_message = FUNNY_MESSAGES["Died"][random.randint(0, len(FUNNY_MESSAGES["Died"])-1)]
+                    await ctx.send(f'{member.mention} is dead. {died_message}')
                     members.remove(member) # remove member from members list
         
         # Win message
