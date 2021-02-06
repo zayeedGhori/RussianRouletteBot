@@ -1,4 +1,4 @@
-import discord, random
+import discord, random, asyncio
 from discord.ext import commands
 
 # Constants, can be modified if needed
@@ -18,6 +18,12 @@ FUNNY_MESSAGES = {
         "Really bro? 😑"
     ]
 }
+
+RESPONSE_COMMANDS = [
+    ".hit",
+    ".shoot",
+    ".fire"
+]
 
 
 class Play(commands.Cog):
@@ -55,18 +61,33 @@ class Play(commands.Cog):
 
             # for every member playing, make them shoot
             for member in members:
-                await ctx.send(f'{member.mention} shot, and ...')
+
+                await ctx.send(f'Your turn {member.display_name}!')
+                
+
+                def verify(msg):
+                    return msg.author.mention == member.mention and msg.channel == ctx.channel and msg.content in RESPONSE_COMMANDS
+
+                try:
+                    await self.bot.wait_for("message", timeout=60.0, check=verify)
+                except asyncio.TimeoutError:
+                    await ctx.send(f'{member.display_name} failed to respond in time!')
+                    members.remove(member)
+                    continue
+
+
+                await ctx.send(f'{member.display_name} shot, and ...')
                 
                 # If safe, then no bullet+
                 safe = cylinder.pop(random.randint(0, len(cylinder)-1))
                 if safe:   
                     safe_message = FUNNY_MESSAGES["Survived"][random.randint(0, len(FUNNY_MESSAGES["Survived"])-1)]
-                    await ctx.send(f'{member.mention} is safe. {safe_message}')
+                    await ctx.send(f'is safe! {safe_message}')
                 
                 # if not safe, member is dead
                 else:
                     died_message = FUNNY_MESSAGES["Died"][random.randint(0, len(FUNNY_MESSAGES["Died"])-1)]
-                    await ctx.send(f'{member.mention} is dead. {died_message}')
+                    await ctx.send(f'is dead! {died_message}')
                     members.remove(member) # remove member from members list
         
         # Win message
@@ -82,4 +103,5 @@ class Play(commands.Cog):
     
 # Runs on setup
 def setup(bot):
+    bot.self_bot = False
     bot.add_cog(Play(bot))
