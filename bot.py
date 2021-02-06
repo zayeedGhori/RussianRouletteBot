@@ -58,6 +58,8 @@ async def rickroll(ctx):
 async def helpme(ctx):
     await ctx.send("You asked for help?")
 
+bot.remove_command('help')
+
 # loads all python cogs in /cogs folder
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
