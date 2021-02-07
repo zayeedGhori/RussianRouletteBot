@@ -58,6 +58,7 @@ async def rickroll(ctx):
 async def helpme(ctx):
     await ctx.send("You asked for help?")
 
+# Removes default help command
 bot.remove_command('help')
 
 # loads all python cogs in /cogs folder
