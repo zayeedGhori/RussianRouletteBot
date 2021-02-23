@@ -58,6 +58,33 @@ async def rickroll(ctx):
 async def helpme(ctx):
     await ctx.send("You asked for help?")
 
+# Command group setprefix changes the bot's default prefix based on a passed value.
+# If a space is desired in the prefix (inluding a space between prefix and command),
+# quotations should be used like '.setprefix "[prefix] "'.
+# Aliases: 'sp'
+@bot.group(
+    aliases=['sp'], 
+    description='Used to change the bot\'s prefix. \
+                If you want a space between the commands and the prefix, \
+                use quotations: `"[prefix] "`. Default prefix: `.`, \
+                use `.setprefix default` to set to default',
+    invoke_without_command=True
+)
+async def setprefix(ctx, new_prefix):
+    bot.command_prefix = new_prefix
+
+    await ctx.send(f'Prefix sucessfully changed to: `{new_prefix}`!')
+
+# Subcommand of setprefix, sets the prefix to default: '.'. Aliases: 'd'
+@setprefix.command(
+    aliases=['d'], 
+    description='Set command prefix to default: `.`.'
+)
+async def default(ctx):
+    bot.command_prefix = '.'
+
+    await ctx.send(f'Prefix sucessfully changed to default: `.`!')
+
 # Removes default help command
 bot.remove_command('help')
 

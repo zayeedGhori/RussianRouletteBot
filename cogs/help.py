@@ -1,15 +1,16 @@
 import discord
 from discord.ext import commands
-from discord.utils import deprecated, find
+from discord.utils import find
 
 class Help(commands.Cog):
     '''Constants'''
-
+    
+    # Info for the commands in this file
     COMMAND_INFO = {
         'help' : {
             'description' : "Type this command for help. \
-                            Type '.help [cmd]' to see cmd's description. \
-                            Type '.help tutorial' for the tutorial.",
+                            Type `.help [cmd]` to see `cmd`'s description. \
+                            Type `.help tutorial` for the tutorial.",
             
             'invoke_without_command' : True
         },
@@ -22,35 +23,40 @@ class Help(commands.Cog):
         }
     }
 
-    TUTORIAL_INFO = {
-        'title' : 'Welcome to Russian Roulette Bot Blins!',
-        'description' : "To play, type in '.play' and @ the people that you want to play with!",
-        'colour' :  discord.Colour.blue(),
-        'author' : 'Tutorial',
-        'footer' : "For extra help, type '.help'"
-    }
+    # Info for the formatting of embeds for commands
+    FORMAT_INFO = {
+        'tutorial' : {
+            'title' : 'Welcome to Russian Roulette Bot Blins!',
+            'description' : "To play, type in `.play` and `@` the people that you want to play with!",
+            'colour' :  discord.Colour.blue(),
+            'author' : 'Tutorial',
+            'footer' : "For extra help, type '.help'"
+        },
 
-    GENERAL_HELP_INFO = {
-        'title' : 'General help',
-        'description' : "This is general help command.",
-        'colour' : discord.Colour.blue()
+        'general_help' : {
+            'title' : 'General help',
+            'description' : "This is general help command.",
+            'colour' : discord.Colour.blue()
+        }
     }
 
 
     ''' Embeds '''
 
     tutorial = discord.Embed(
-        title = TUTORIAL_INFO['title'],
-        description = TUTORIAL_INFO['description'],
-        colour = TUTORIAL_INFO['colour'],
-        author = TUTORIAL_INFO['author'],
-        footer = TUTORIAL_INFO['footer']
+        title = FORMAT_INFO['tutorial']['title'],
+        description = FORMAT_INFO['tutorial']['description'],
+        colour = FORMAT_INFO['tutorial']['colour']
+    ).set_author(
+        name=FORMAT_INFO['tutorial']['author']
+    ).set_footer(
+        text=FORMAT_INFO['tutorial']['footer']
     )
 
     general_help = discord.Embed(
-        title = GENERAL_HELP_INFO['title'],
-        description = GENERAL_HELP_INFO['description'],
-        colour = GENERAL_HELP_INFO['colour']
+        title = FORMAT_INFO['general_help']['title'],
+        description = FORMAT_INFO['general_help']['description'],
+        colour = FORMAT_INFO['general_help']['colour']
     )
 
     # Constructor
