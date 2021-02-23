@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 class Shop(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot : discord.Client):
         self.bot = bot
         self.channels_in_shop = {} # Dictionary of channels that activates shop_env
 
@@ -55,7 +55,7 @@ class Shop(commands.Cog):
 
     # shop environment, called whenever a message is sent
     @commands.Cog.listener('on_message')
-    async def shop_env(self, message):
+    async def shop_env(self, message : discord.Message):
         # if the channel does not exist in the dictionary, stop the function
         try:
             self.channels_in_shop[message.channel]
@@ -63,7 +63,7 @@ class Shop(commands.Cog):
             return
 
         # if the channel is in the shop and the author is not the bot
-        if self.channels_in_shop[message.channel] and message.author is not self.bot:
+        if self.channels_in_shop[message.channel] and message.author != self.bot.user:
 
             # if the message says exit, exit the shop and set channel to False in channels_in_shop
             if (message.content == 'exit'):
