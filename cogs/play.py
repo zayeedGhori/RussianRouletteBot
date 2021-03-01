@@ -1,4 +1,4 @@
-import discord, random, asyncio
+import discord, random, asyncio, time
 from discord.ext import commands
 
 # Constants, can be modified if needed
@@ -18,32 +18,48 @@ FUNNY_MESSAGES = {
         "Really bro? 😑"
     ]
 }
-
-RESPONSE_COMMANDS = [
-    ".hit",
-    ".shoot",
-    ".fire"
-]
-
+TIME_TO_RESPOND = 60
 
 class Play(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.GAMES_PLAYED = -1
+        self.Games = {}
+
+
+    def user_is_in_game(self, user):
+        for game in self.Games:
+            if user in game:
+                return True
+        
+        return False
 
     # The group of russian roulette commands, default is played when there are no subcommands 
     @commands.group(invoke_without_command=True, aliases=["roulette"])
     async def play(self, ctx):
-
         ''' Default Command '''
-
+        members = []
         # makes list for every member in the message that invoked this command
-        members = [member for member in ctx.message.mentions]
+        for member in ctx.message.mentions:
+            if not self.user_is_in_game(member):
+                members.append(member)
+            else:
+                await ctx.send(f'User {member.display_name} is currently in a game! They have been omitted.')
 
         # Create revolver with bullet (the location being the index of the True value)
         if len(members) < REQUIRED_NUM_PLAYERS:
             await ctx.send(f'You do not have enough players! {REQUIRED_NUM_PLAYERS-len(members)} more players needed.') 
             return
+
+        self.GAMES_PLAYED += 1
+
+        game_id = self.GAMES_PLAYED
+
+        self.Games[game_id] = {
+            "Players" : members,
+            "CurrentPlayer" : 0,
+        }
 
         cylinder = [True for _ in range(NUMBER_OF_ROUNDS)]
         cylinder[random.randint(0, NUMBER_OF_ROUNDS-1)] = False
@@ -52,9 +68,7 @@ class Play(commands.Cog):
 
         ### Short game of automated imperfect russian roulette ###
         Round = 0
-
-        # while more than one member is standing, play the game
-        while (len(members) > 1):
+        while len(members) > 1:
             # Increment and display round
             Round += 1 
             await ctx.send(f'Round {Round}:')
@@ -63,17 +77,23 @@ class Play(commands.Cog):
             for member in members:
 
                 await ctx.send(f'Your turn {member.display_name}!')
-                
+                print(self.Games[game_id]["CurrentPlayer"])
+                self.Games[game_id]["CurrentPlayer"] = member
 
-                def verify(msg):
-                    return msg.author.mention == member.mention and msg.channel == ctx.channel and msg.content in RESPONSE_COMMANDS
+                @commands.group(invoke_without_command=True, aliases=["shoot", "fire"])
+                async def hit(self, ctx):
+                    self.Games[game_id]["CurrentPlayer"] = 0
+                    self.bot.remove_command("hit")
 
-                try:
-                    await self.bot.wait_for("message", timeout=60.0, check=verify)
-                except asyncio.TimeoutError:
-                    await ctx.send(f'{member.display_name} failed to respond in time!')
-                    members.remove(member)
-                    continue
+
+                benchmark = time.time()
+
+                while True:
+                    if time.time()-benchmark > TIME_TO_RESPOND:
+                        await ctx.send(f'{member.display_name} failed to respond in time!')
+                        break
+                    elif not self.Games[game_id]["CurrentPlayer"]:
+                        break
 
 
                 await ctx.send(f'{member.display_name} shot, and ...')
@@ -92,6 +112,10 @@ class Play(commands.Cog):
         
         # Win message
         await ctx.send(f'{members[0].mention} wins!')
+        
+        self.Games.pop(game_id, None)
+        # award points here
+        
         
 
     
