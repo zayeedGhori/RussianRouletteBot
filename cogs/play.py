@@ -1,7 +1,8 @@
-import discord, random, asyncio, time
+import discord, random, asyncio
 from discord.ext import commands
 
 # Constants, can be modified if needed
+FILLER = "[FILLER]"
 NUMBER_OF_ROUNDS = 6
 REQUIRED_NUM_PLAYERS = 2
 FUNNY_MESSAGES = {
@@ -20,6 +21,15 @@ FUNNY_MESSAGES = {
 }
 TIME_TO_RESPOND = 60
 
+def createEmbed(title="", desc="test", fields=[], colour=discord.Color.dark_blue()):
+    title, desc = str(title), str
+    embed = discord.Embed(title = title, description = desc, colour = colour)
+
+    for field in fields:
+        embed.add_field(name = field["name"], value = field["value"], inline = field["inline"])
+
+    return embed
+
 class Play(commands.Cog):
 
     def __init__(self, bot):
@@ -35,6 +45,8 @@ class Play(commands.Cog):
         
         return False
 
+    
+
     # The group of russian roulette commands, default is played when there are no subcommands 
     @commands.group(invoke_without_command=True, aliases=["roulette"])
     async def play(self, ctx):
@@ -45,11 +57,11 @@ class Play(commands.Cog):
             if not self.user_is_in_game(member):
                 members.append(member)
             else:
-                await ctx.send(f'User {member.display_name} is currently in a game! They have been omitted.')
+                await ctx.send(embed=createEmbed(title = "Can't join!", desc=f'User {member.display_name} is currently in a game! They have been omitted.', colour = discord.Color.dark_gray()))
 
         # Create revolver with bullet (the location being the index of the True value)
         if len(members) < REQUIRED_NUM_PLAYERS:
-            await ctx.send(f'You do not have enough players! {REQUIRED_NUM_PLAYERS-len(members)} more players needed.') 
+            await ctx.send(embed=createEmbed(title = "Not enough players!", desc=f'You do not have enough players! {REQUIRED_NUM_PLAYERS-len(members)} more players needed.', colour = discord.Color.red())) 
             return
 
         self.GAMES_PLAYED += 1
@@ -64,29 +76,28 @@ class Play(commands.Cog):
         cylinder = [True for _ in range(NUMBER_OF_ROUNDS)]
         cylinder[random.randint(0, NUMBER_OF_ROUNDS-1)] = False
         # Let members know what mode they are using
-        await ctx.send(f'{" ".join(member.mention for member in members)} are playing regular mode!')
+        await ctx.send(embed=createEmbed(desc=f'{", ".join(member.display_name for member in members)} are playing regular mode!'))
 
         ### Short game of automated imperfect russian roulette ###
         Round = 0
         while len(members) > 1:
             # Increment and display round
             Round += 1 
-            await ctx.send(f'Round {Round}:')
+            await ctx.send(embed=createEmbed(title=f'Round {Round}:', desc=""))
 
             # for every member playing, make them shoot
             for member in members:
 
-                await ctx.send(f'Your turn {member.display_name}!')
+                await ctx.send(embed=createEmbed(desc=f'Your turn {member.display_name}!'))
                 print(self.Games[game_id]["CurrentPlayer"])
                 self.Games[game_id]["CurrentPlayer"] = member
 
+                """
+                While loop implementation - not in use.
                 @commands.group(invoke_without_command=True, aliases=["shoot", "fire"])
                 async def hit(self, ctx):
                     self.Games[game_id]["CurrentPlayer"] = 0
                     self.bot.remove_command("hit")
-
-
-                benchmark = time.time()
 
                 while True:
                     if time.time()-benchmark > TIME_TO_RESPOND:
@@ -94,24 +105,46 @@ class Play(commands.Cog):
                         break
                     elif not self.Games[game_id]["CurrentPlayer"]:
                         break
+                """
 
+                hit_commands = [
+                    "hit",
+                    "shoot",
+                    "fire",
+                    "hit me"
+                ]
 
-                await ctx.send(f'{member.display_name} shot, and ...')
-                
-                # If safe, then no bullet+
-                safe = cylinder.pop(random.randint(0, len(cylinder)-1))
-                if safe:   
-                    safe_message = FUNNY_MESSAGES["Survived"][random.randint(0, len(FUNNY_MESSAGES["Survived"])-1)]
-                    await ctx.send(f'is safe! {safe_message}')
-                
-                # if not safe, member is dead
+                def verify(message):
+                    return message.content.lower().strip() in hit_commands and message.author == member
+
+                shotEmbed = discord.Embed
+                try:
+                    await self.bot.wait_for("message", check=verify, timeout=60.0)
+                except asyncio.TimeoutError:
+                    
+                    await ctx.send(embed=createEmbed(desc=f'{member.display_name} failed to respond in time!'))
+                    members.remove(member) 
                 else:
-                    died_message = FUNNY_MESSAGES["Died"][random.randint(0, len(FUNNY_MESSAGES["Died"])-1)]
-                    await ctx.send(f'is dead! {died_message}')
-                    members.remove(member) # remove member from members list
-        
+                    shotEmbed = createEmbed(desc=f'{member.display_name} shot, and ...')
+                    
+                    # If safe, then no bullet+
+                    safe = cylinder.pop(random.randint(0, len(cylinder)-1))
+                    if safe:   
+                        shotEmbed = createEmbed(desc=f'{member.display_name} shot, and ...', colour = discord.Color.green())
+                        safe_message = FUNNY_MESSAGES["Survived"][random.randint(0, len(FUNNY_MESSAGES["Survived"])-1)]
+                        shotEmbed.add_field(name="safe", value=f'is safe! {safe_message}', inline=False)
+                    
+                    # if not safe, member is dead
+                    else:
+                        shotEmbed = createEmbed(desc=f'{member.display_name} shot, and ...')
+                        died_message = FUNNY_MESSAGES["Died"][random.randint(0, len(FUNNY_MESSAGES["Died"])-1)]
+                        shotEmbed.add_field(name="safe", value=f'is dead! {died_message}', inline=False)
+                        members.remove(member) # remove member from members list
+
+                    await ctx.send(embed = shotEmbed)
+
         # Win message
-        await ctx.send(f'{members[0].mention} wins!')
+        await ctx.send(embed=createEmbed(title=f'{members[0].mention} wins!', colour=discord.Color.gold()))
         
         self.Games.pop(game_id, None)
         # award points here
