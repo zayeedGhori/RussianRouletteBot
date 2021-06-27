@@ -1,10 +1,14 @@
 import discord
 from discord.ext import commands
+import sys
+sys.path.append("..") # Adds higher directory to python modules path.
+
+from player import Player
 
 class Shop(commands.Cog):
     def __init__(self, bot : discord.Client):
         self.bot = bot
-        self.channels_in_shop = {} # Dictionary of channels that activates shop_env
+        self.players_in_shop = {} # Dictionary of players that activates shop_env in a channel
 
         # List of items and info
         self.items = {
@@ -15,7 +19,7 @@ class Shop(commands.Cog):
                 'price' : 1000
             },
 
-            'sheild' : {
+            'shield' : {
                 'image' : '🛡',
                 'name' : 'Shield',
                 'description' : 'A shield has a 1/100 chance for blocking your opponent\'s bullet. Good luck blyat.',
@@ -47,10 +51,11 @@ class Shop(commands.Cog):
             text = 'Type `buy *item*` or `buy *item* *quantity*`to buy somthing or `exit` to exit the shop.'
         )
         
-    # shop command enters user into the shop by setting the channel to True in channels_in_shop
+    # shop command enters user into the shop by setting the channel to True in players_in_shop
     @commands.command(description='This is the shop!')
     async def shop(self, ctx):
-        self.channels_in_shop[ctx.channel] = True
+        self.players_in_shop[ctx.channel] = True
+        
         await ctx.channel.send(embed=self.shop_page)
 
     # shop environment, called whenever a message is sent
@@ -58,17 +63,17 @@ class Shop(commands.Cog):
     async def shop_env(self, message : discord.Message):
         # if the channel does not exist in the dictionary, stop the function
         try:
-            self.channels_in_shop[message.channel]
+            self.players_in_shop[message.channel]
         except:
             return
 
         # if the channel is in the shop and the author is not the bot
-        if self.channels_in_shop[message.channel] and message.author != self.bot.user:
+        if self.players_in_shop[message.channel] and message.author != self.bot.user:
 
-            # if the message says exit, exit the shop and set channel to False in channels_in_shop
+            # if the message says exit, exit the shop and set channel to False in players_in_shop
             if (message.content == 'exit'):
                 await message.channel.send("Thank you for visiting the shop!") 
-                self.channels_in_shop[message.channel] = False
+                self.players_in_shop[message.channel] = False
             
             #####INCOMPLETE#####
             # If 'buy' is in the message, let the user know
@@ -79,14 +84,20 @@ class Shop(commands.Cog):
                     await message.channel.send("Invalid item selected.")
                 
                 else:
-                    await message.channel.send(f'Thank you for buying {parts[1]}')
-    
+                    item = parts[1]
+
+                    wallet = await self.buy(message.author, item)
+
+                    await message.channel.send(f'Thank you for buying {item}\nYou have ${wallet} remaining.')
+                
     #####INCOMPLETE#####
     # unfinished buy function
-    async def buy(self, item, wallet, quantity=1):
-        return wallet - item['price']*quantity
+    async def buy(self, user : discord.Member, item):
+        player = Player.get_player(user)
         
+        player.wallet -= self.items[item]['price']
 
+        return player.wallet
 
 # Runs on setup
 def setup(bot):

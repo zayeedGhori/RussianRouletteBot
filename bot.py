@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import requests
+from player import Player
 
 # imports items from .env
 load_dotenv()
@@ -14,12 +15,15 @@ intents = discord.Intents.default()
 intents.members = True
 
 # Creates bot
-bot = commands.Bot(command_prefix=".")
+bot = commands.Bot(command_prefix=".", intents=intents)
 
 # Checks if the GUILD in .env is listed is in the guilds of the bot and if it has connected to discord
 @bot.event
 async def on_ready():
     for guild in bot.guilds:
+        for member in guild.members:
+            Player(member)
+        
         if guild.name == GUILD:
             print(f'Found {guild.name} guild!')
             break
@@ -58,7 +62,8 @@ async def rickroll(ctx):
 async def helpme(ctx):
     await ctx.send("You asked for help?")
 
-# Command group setprefix changes the bot's default prefix based on a passed value.
+# Command group setprefix changes the bot's default prefix based on a passed value,
+# if the Member invoking the command is a channel admin.
 # If a space is desired in the prefix (inluding a space between prefix and command),
 # quotations should be used like '.setprefix "[prefix] "'.
 # Aliases: 'sp'
@@ -71,9 +76,14 @@ async def helpme(ctx):
     invoke_without_command=True
 )
 async def setprefix(ctx, new_prefix):
-    bot.command_prefix = new_prefix
 
-    await ctx.send(f'Prefix sucessfully changed to: `{new_prefix}`!')
+    # if the user who used the command is an admin in the channel
+    if (ctx.author.permissions_in(ctx.channel).administrator):
+        bot.command_prefix = new_prefix
+        await ctx.send(f'Prefix sucessfully changed to: `{new_prefix}`!')
+    
+    else:
+        await ctx.send(f'You, {ctx.author}, are not an admin!\nPlease contact a channel admin to change the prefix!')
 
 # Subcommand of setprefix, sets the prefix to default: '.'. Aliases: 'd'
 @setprefix.command(
@@ -92,6 +102,11 @@ bot.remove_command('help')
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
+
+@bot.event
+async def on_guild_join(guild : discord.Guild):
+    for s in guild.members:
+        Player(s)
 
 # runs the bot
 bot.run(TOKEN)
