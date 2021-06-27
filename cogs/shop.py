@@ -1,4 +1,5 @@
 import discord
+from discord import user
 from discord.ext import commands
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
@@ -79,6 +80,7 @@ class Shop(commands.Cog):
             # If 'buy' is in the message, let the user know
             elif ('buy' in message.content):
                 parts = message.content.split()
+                player = Player.get_player(message.author)
 
                 if (len(parts) < 2 or len(parts) > 3):
                     await message.channel.send("Invalid item selected.")
@@ -86,23 +88,21 @@ class Shop(commands.Cog):
                 elif (len(parts) < 3):
                     item = parts[1]
 
-                    await self.buy(message.author, item)
+                    await self.buy(player, item)
 
-                    await message.channel.send(f'Thank you for buying {item}\nYou have ${wallet} remaining.')
+                    await message.channel.send(f'Thank you for buying {item}\nYou have ${player.wallet} remaining.')
                 
                 else:
                     item = parts[1]
 
                     await self.buy(message.author, item)
 
-                    await message.channel.send(f'Thank you for buying {item}\nYou have ${wallet} remaining.')
+                    await message.channel.send(f'Thank you for buying {item}\nYou have ${player.wallet} remaining.')
 
                 
     #####INCOMPLETE#####
     # unfinished buy function
-    async def buy(self, user : discord.Member, item, numItems = 1):
-        player = Player.get_player(user)
-        
+    async def buy(self, player : Player, item, numItems = 1):
         player.wallet -= self.items[item]['price']
 
         if (self.item[item]['name'] == 'Life'):
