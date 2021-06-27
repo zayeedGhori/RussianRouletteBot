@@ -80,24 +80,35 @@ class Shop(commands.Cog):
             elif ('buy' in message.content):
                 parts = message.content.split()
 
-                if (len(parts) < 2):
+                if (len(parts) < 2 or len(parts) > 3):
                     await message.channel.send("Invalid item selected.")
+                
+                elif (len(parts) < 3):
+                    item = parts[1]
+
+                    await self.buy(message.author, item)
+
+                    await message.channel.send(f'Thank you for buying {item}\nYou have ${wallet} remaining.')
                 
                 else:
                     item = parts[1]
 
-                    wallet = await self.buy(message.author, item)
+                    await self.buy(message.author, item)
 
                     await message.channel.send(f'Thank you for buying {item}\nYou have ${wallet} remaining.')
+
                 
     #####INCOMPLETE#####
     # unfinished buy function
-    async def buy(self, user : discord.Member, item):
+    async def buy(self, user : discord.Member, item, numItems = 1):
         player = Player.get_player(user)
         
         player.wallet -= self.items[item]['price']
 
-        return player.wallet
+        if (self.item[item]['name'] == 'Life'):
+            player.lives += numItems
+
+
 
 # Runs on setup
 def setup(bot):

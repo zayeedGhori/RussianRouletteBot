@@ -15,6 +15,7 @@ class Player:
         self.level = 0
         self.lives = 0
         self.name = user.name
+        self.items = {}
         players[user] = self
     
     def get_players():
