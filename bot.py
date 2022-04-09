@@ -108,5 +108,6 @@ async def on_guild_join(guild : discord.Guild):
     for s in guild.members:
         Player(s)
 
-# runs the bot
-bot.run(TOKEN)
+if __name__ == '__main__':
+    # runs the bot
+    bot.run(TOKEN)
